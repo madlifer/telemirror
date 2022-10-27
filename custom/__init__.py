@@ -135,26 +135,6 @@ class UserCommentFormatFilter(MessageFilter):
 
             if message_link:
                 message.text = f'[{name} 说]({message_link}): {message.text}'
-
-            reply_key = self.__reply_message_key(message)
-
-            if not await self._database.check_for_message(reply_key):
-
-                await self._database.mark_message(reply_key)
-
-                reply_to_id: int = message.reply_to.reply_to_msg_id
-                chat_id: int = utils.get_peer_id(message.peer_id)
-
-                client: TelegramClient = message.client
-                try:
-                    message_link: Optional[str] = self.message_link(message)
-                    if message_link:
-                        for m in await self._database.get_messages(reply_to_id, chat_id):
-                            # Send cloned comments disclaimer
-                            await client.send_message(m.mirror_channel, message=self.WARNING.format(link=message_link), link_preview=False, reply_to=m.mirror_id)
-                finally:
-                    pass
-
             return True, message
 
         return False, message
